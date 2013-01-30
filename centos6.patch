@@ -1,0 +1,112 @@
+--- download_and_compile.sh	2013-01-30 13:14:21.158980726 -0500
++++ download_and_compile_cento6.sh	2013-01-30 13:12:54.743699563 -0500
+@@ -273,12 +273,22 @@
+ 
+ UBUNTU_PACKAGES="freeglut3-dev libjpeg62-dev libjpeg62 libapr1-dev libfltk1.3-dev libfltk1.3"
+ DEBIAN_PACKAGES="freeglut3-dev libjpeg8-dev libjpeg8 libfltk-dev libfltk1.1"
++CENTOS_PACKAGES="freealut-devel openal-soft-devel freealut-devel fltk-devel cvs 
++git subversion cmake make automake zlib-devel wxGTK-devel fltk-fluid gawk 
++gettext libXi-devel libXmu-devel boost-devel alsa-lib-devel libpng-devel 
++jasper-devel OpenEXR-libs OpenEXR-devel boost-serialization boost-devel 
++git-core hal-devel qt-devel scons pygtk2-devel python-imaging-tk 
++subversion-devel glew-devel libudev-devel"
+ 
+ # checking linux distro and version to differ needed packages
+ if [ "$DISTRIB_ID" = "Ubuntu" -o "$DISTRIB_ID" = "LinuxMint" ]
+ then
+ 	echo "$DISTRIB_ID $DISTRIB_RELEASE" >> $LOGFILE
+ 	DISTRO_PACKAGES="$DISTRO_PACKAGES $UBUNTU_PACKAGES"
++elif  [  -e /etc/redhat-release ]
++then
++    DISTRIB_ID=CentOS
++    echo REDHAT, hopefully: $DISTRIB_ID
+ else
+ 	echo "DEBIAN I SUPPOUSE" >> $LOGFILE
+ 	DISTRO_PACKAGES="$DISTRO_PACKAGES $DEBIAN_PACKAGES"
+@@ -307,7 +317,11 @@
+ 
+ 		echo "Asking your password to perform an apt-get install ... "
+ 		sudo apt-get install $DISTRO_PACKAGES 
+-	else
++	elif [ "$DISTRIB_ID" = "CentOS" ]
++    then
++        echo "Asking your password to perform a yum install ... "
++        sudo yum install $CENTOS_PACKAGES
++    else
+ 		# WE ARE USING DEBIAN
+ 		
+ 		if [ "$APT_GET_UPDATE" = "y" ]
+@@ -793,6 +807,16 @@
+ 				git pull
+ 			fi
+ 
++            if [ "$DISTRIB_ID" = "CentOS" ]
++            then
++                # on CentOS 6 version of udev, extern C is not used
++                # to wrap the udev include file, as a result during
++                # linking in a C++ program name mangling will result
++                # in failures.
++                echo "patching udev include file on CentOS 6"
++                sed -i 's/\(#include <libudev.h>\)/extern "C" {\n\1\n}/' src/Input/FGLinuxEventInput.cxx
++            fi
++
+ 			cd ..	
+ 
+ 			echo " OK" >> $LOGFILE
+@@ -863,6 +887,10 @@
+ 			if [ "$DOWNLOAD" = "y" ]
+ 			then
+ 				EXDIR=$(pwd)
++                if [ ! -d $INSTALL_DIR_FGFS ]
++                then
++                    mkdir -p $INSTALL_DIR_FGFS
++                fi
+ 				cd $INSTALL_DIR_FGFS
+ 				echo -n "GIT DATA FROM git://gitorious.org/fg/fgdata.git ... " >> $LOGFILE
+ 
+@@ -1011,7 +1039,7 @@
+ FGX_INSTALL_DIR=fgx
+ INSTALL_DIR_FGX=$INSTALL_DIR/$FGX_INSTALL_DIR
+ cd "$CBD"
+-if [ "$WHATTOBUILD" = "" -o "$WHATTOBUILD" = "FGX" ]
++if [ ! "$DISTRIB_ID" = "CentOS" ] && [ "$WHATTOBUILD" = "" -o "$WHATTOBUILD" = "FGX" ]
+ then
+ 	echo "****************************************" | tee -a $LOGFILE
+ 	echo "***************** FGX ******************" | tee -a $LOGFILE
+@@ -1108,7 +1136,8 @@
+ INSTALL_DIR_FGRUN=$INSTALL_DIR/$FGRUN_INSTALL_DIR
+ cd "$CBD"
+ 
+-if [ "$WHATTOBUILD" = "" -o "$WHATTOBUILD" = "FGRUN" -o "$WHATTOBUILD" = "ALL" ]
++# FGRUN won't compile on CentOS 6 since it needs fltk 1.3
++if  [ ! "$DISTRIB_ID" = "CentOS" ] && [ "$WHATTOBUILD" = "" -o "$WHATTOBUILD" = "FGRUN" -o "$WHATTOBUILD" = "ALL" ]
+ then
+ 	echo "****************************************" | tee -a $LOGFILE
+ 	echo "**************** FGRUN *****************" | tee -a $LOGFILE
+@@ -1215,7 +1244,7 @@
+ INSTALL_DIR_FGCOM=$INSTALL_DIR/$FGCOM_INSTALL_DIR
+ cd "$CBD"
+ 
+-if [ "$WHATTOBUILD" = "ALL" -o "$WHATTOBUILD" = "FGCOM" ]
++if [ ! "$DISTRIB_ID" = "CentOS" ] && [ "$WHATTOBUILD" = "ALL" -o "$WHATTOBUILD" = "FGCOM" ]
+ then
+ 	echo "****************************************" | tee -a $LOGFILE
+ 	echo "**************** FGCOM *****************" | tee -a $LOGFILE
+@@ -1361,7 +1390,7 @@
+ INSTALL_DIR_FGCOMGUI=$INSTALL_DIR/$FGCOMGUI_INSTALL_DIR
+ cd "$CBD"
+ 
+-if [ "$WHATTOBUILD" = "ALL" -o "$WHATTOBUILD" = "FGCOMGUI" ]
++if [ ! "$DISTRIB_ID" = "CentOS" ] && [ "$WHATTOBUILD" = "ALL" -o "$WHATTOBUILD" = "FGCOMGUI" ]
+ then
+ 	echo "****************************************" | tee -a $LOGFILE
+ 	echo "*************** FGCOMGUI ***************" | tee -a $LOGFILE
+@@ -1417,7 +1446,7 @@
+ INSTALL_DIR_ATLAS=$INSTALL_DIR/$ATLAS_INSTALL_DIR
+ cd "$CBD"
+ 
+-if [ "$WHATTOBUILD" = "ALL" -o "$WHATTOBUILD" = "ATLAS" ]
++if [ ! "$DISTRIB_ID" = "CentOS" ] && [ "$WHATTOBUILD" = "ALL" -o "$WHATTOBUILD" = "ATLAS" ]
+ then
+ 	echo "****************************************" | tee -a $LOGFILE
+ 	echo "**************** ATLAS *****************" | tee -a $LOGFILE
