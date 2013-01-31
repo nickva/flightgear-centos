@@ -59,9 +59,12 @@ http://www.gitorious.org/fg/fgmeta/blobs/raw/master/download_and_compile.sh
 
 The patch was generated with:
 
-   $ diff -u <original.sh> <updated.sh> > centos6.patch
+
+    $ diff -u <original.sh> <updated.sh> > centos6.patch
 
 To apply the patch to the original script to get the updated version to build on CentOS 6 use:
-   $ patch <original.sh> -i centos6.patch -o <updated.sh>
+
+
+    $ patch <original.sh> -i centos6.patch -o <updated.sh>
 
 
