@@ -32,7 +32,6 @@ VERSION="1.9-4"
 # Thanks again to "F-JJTH" for OpenRTI and FGX 
 
 
-
 LOGFILE=compilation_log.txt
 LOGSEP="***********************************"
 
